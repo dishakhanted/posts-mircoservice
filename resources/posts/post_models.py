@@ -7,8 +7,10 @@ from resources.rest_models import Link
 
 class PostModel(BaseModel):
 
-    userID: str
-    postID: str
+    userPostID: int
+    userID: int
+    postID: int
+    postThreadID: int
     postContent: str
     dateOfCreation: str
 
@@ -16,8 +18,10 @@ class PostModel(BaseModel):
         "json_schema_extra": {
             "examples": [
                 {
-                    "userID": "1",
-                    "postID": "1",
+                    "userPostID":1
+                    "userID": 1,
+                    "postID": 1,
+                    "postThreadID": 1,
                     "postContent": "Hey, so excited to connect after so long!",
                     "dateOfCreation": "09/15/23 14:33"
                 }
