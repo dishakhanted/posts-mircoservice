@@ -1,5 +1,7 @@
 from resources.abstract_base_data_service import BaseDataService
+from resources.database.database_data_service import DatabaseDataService
 import json
+from resources.posts.post_models import PostModel
 
 
 class PostDataService(BaseDataService):
@@ -11,51 +13,95 @@ class PostDataService(BaseDataService):
         """
         super().__init__()
 
-        self.data_dir = config['data_directory']
-        self.data_file = config["data_file"]
-        self.students = []
+        #self.data_dir = config['data_directory']
+        #self.data_file = config["data_file"]
+        #self.students = []
 
+        self.database = DatabaseDataService(config)
         self._load()
 
-    def _get_data_file_name(self):
+    #def _get_data_file_name(self):
         # DFF TODO Using os.path is better than string concat
-        result = self.data_dir + "/" + self.data_file
-        return result
+        #result = self.data_dir + "/" + self.data_file
+       #return result
 
     def _load(self):
 
-        fn = self._get_data_file_name()
-        with open(fn, "r") as in_file:
-            self.students = json.load(in_file)
+        posts = """CREATE TABLE IF NOT EXISTS "userPosts" (
+        "userPostID" serial,
+        "userID" int,
+        "postID" int,
+        "postContent" text,
+        "dateOfCreation" timestamp,
+        PRIMARY KEY ("userPostsID"),
+        CONSTRAINT "FK_userPosts.postID"
+            FOREIGN KEY ("postID")
+            REFERENCES "postThread"("postID"),
+        CONSTRAINT "FK_userPosts.userID"
+            FOREIGN KEY ("userID")
+            REFERENCES "postUsers"("userID")
+        );"""
+        threads = """CREATE TABLE IF NOT EXISTS "postThread" (
+        "postID" serial,
+        "dateOfCreation" timestamp,
+        PRIMARY KEY ("postID")
+        );"""
+        self.database.execute_query(threads)
+        self.database.execute_query(posts)
 
-    def _save(self):
-        fn = self._get_data_file_name()
-        with open(fn, "w") as out_file:
-            json.dump(self.students, out_file)
+    def get_database(self):
+        return self.database
 
-    def get_posts(self, uni: str = None, first_name: str = None, last_name: str = None, school_code: str = None, post_id: str = None) -> list:
-        """
-
-        Returns students with properties matching the values. Only non-None parameters apply to
-        the filtering.
-
-        :param uni: UNI to match.
-        param first_name: first_name to match.
-        :param last_name: last_name to match.
-        :param school_code: school_code to match.
-        param post_id: post_id to match.
-        :return: A list of matching JSON records.
-        """
+    def get_posts(self, userID: int, postID: int, postContent: int, offset: int, limit: int) -> list:
         result = []
+        posts = {}
+        query = """SELECT * FROM "userPosts" """
+        if (userID is None and postID is None and postContent is None and offset is None and limit is None):
+            query += """;"""
+        else:
+            query += """ WHERE 1=1"""
+            if (userID is not None):
+                query += """ AND "userID"=""" + str(userID)
+            if (postID is not None):
+                query += """ AND "postID"='""" + str(postID) + """'"""
+            if (postContent is not None):
+                query += """ AND "postContent" LIKE '%""" + str(postContent) + """%'"""
+            if (limit is not None):
+                if (offset is not None):
+                    query += """ LIMIT """ + str(limit) + """ OFFSET """ + str(offset)
+                else:
+                    query += """ LIMIT """ + str(limit)
+            query += """;"""
 
-        for s in self.students:
+        posts = self.database.fetchallquery(query)
+        for s in posts:
+            s['dateOfCreation'] = s['dateOfCreation'].strftime("%m/%d/%Y, %H:%M:%S")
+            result.append(s)
 
-            if (uni is None or (s.get("uni", None) == uni)) and \
-                    (first_name is None or (s.get("first_name", None) == first_name)) and \
-                    (last_name is None or (s.get("last_name", None) == last_name)) and \
-                    (school_code is None or (s.get("school_code", None) == school_code)) and \
-                    (post_id is None or (s.get("post_id", None) == post_id)):
-                    result.append(s)
+        return result
+    
+    def add_post(self, request: dict) -> list:
+        check_thread = f"""INSERT INTO "postThread" ("postID", "dateOfCreation") VALUES ('{request.postID}', CURRENT_TIMESTAMP) ON CONFLICT DO NOTHING"""
+        self.database.execute_query(check_thread)
+        query = f"""INSERT INTO "userPosts"("userPostID", "userID", "postID", "postContent", "dateOfCreation") VALUES (DEFAULT, '{request.userID}', '{request.postID}' , '{request.postContent}', CURRENT_TIMESTAMP) RETURNING "postID";"""
+        posts = self.database.execute_query(query)
+        result = posts.fetchone()
+
+        return result
+
+    def put_post(self, request: dict) -> list:
+        check_thread = f"""INSERT INTO "postThread" ("postID", "dateOfCreation") VALUES ('{request.postID}', CURRENT_TIMESTAMP) ON CONFLICT DO NOTHING"""
+        self.database.execute_query(check_thread)
+        query = f"""INSERT INTO "userPosts"("userPostID", "userID", "postID", "postContent", "dateOfCreation") VALUES ('{request.userPostID}', '{request.userID}', '{request.postID}' , '{request.postContent}', CURRENT_TIMESTAMP) ON CONFLICT ("userPostID") DO UPDATE SET "postContent"='{request.postContent}', "dateOfCreation"=CURRENT_TIMESTAMP RETURNING "postID";"""
+        posts = self.database.execute_query(query)
+        result = posts.fetchone()
+
+        return result
+
+    def delete_post(self, request: dict) -> list:
+        query = f"""DELETE FROM "userPosts" WHERE "userPostID" = '{request.userPostID}' RETURNING "postID";"""
+        posts = self.database.execute_query(query)
+        result = posts.fetchone()
 
         return result
 
