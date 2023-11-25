@@ -2,63 +2,104 @@
 # FastAPI is a framework and library for implementing REST web services in Python.
 # https://fastapi.tiangolo.com/
 #
-from fastapi import FastAPI, Response, HTTPException
+from fastapi import FastAPI, Response, HTTPException, Request
 from fastapi.responses import RedirectResponse
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
 
 from fastapi.staticfiles import StaticFiles
 from typing import List, Union
+
+from datetime import datetime, timedelta
+from typing import Annotated
+from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+from pydantic import BaseModel
+
 
 # I like to launch directly and not use the standard FastAPI startup process.
 # So, I include uvicorn
 import uvicorn
 
+from resources.posts.post_data_service import PostDataService
+from resources.posts.post_resource import PostRspModel, PostModel, PostResource
+from resources.users.users_data_service import UserDataService
+from resources.users.users_resource import UserResource
+from resources.users.users_models import UserRspModel, UserModel
+from pydantic import BaseModel
 
-from resources.students.students_resource import StudentsResource
-from resources.students.students_data_service import StudentDataService
-from resources.students.student_models import StudentModel, StudentRspModel
-from resources.schools.school_models import SchoolRspModel, SchoolModel
-from resources.schools.schools_resource import SchoolsResource
-from resources.database.database_data_service import DatabaseDataService
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    username: str | None = None
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
-
-
-# ******************************
-#
-# DFF TODO Show the class how to do this with a service factory instead of hard code.
+templates = Jinja2Templates(directory="templates")
 
 
 def get_data_service():
+    database = {}
+    if LOCAL:
+        database = {
+            "db_name" : "post",
+            "db_host" : "localhost",
+            "db_user" : "post",
+            "db_pass" : "post",
+        }
+    else:
+        database = {
+            "db_name" : "post",
+            "db_host" : '/cloudsql/{}'.format("posts-microservice:us-east1:post-db"),
+            "db_user" : "post",
+            "db_pass" : "post",
+        }
 
-    config = {
-        "data_directory": "data",
-        "data_file": "students.json"
-    }
-
-    ds = StudentDataService(config)
+    ds = PostDataService(database)
     return ds
 
 
-def get_student_resource():
+def get_post_resource():
     ds = get_data_service()
     config = {
         "data_service": ds
     }
-    res = StudentsResource(config)
+    res = PostResource(config)
     return res
 
 
-students_resource = get_student_resource()
+post_resource = get_post_resource()
 
-schools_resource = SchoolsResource(config={"students_resource": students_resource})
+def get_user_resource():
+    ds = get_data_service()
+    config = {
+        "data_service": ds
+    }
+    res = UserResource(config)
+    return res
 
+
+user_resource = get_user_resource()
 
 #
 # END TODO
 # **************************************
 
+"""
+/api/posts/{userID}
+/api/posts/{userID}/newPost
+/api/posts/{userID}/{postID}
+"""
 
 @app.get("/")
 async def root():
@@ -71,28 +112,25 @@ async def api():
     """
     return RedirectResponse("/docs")
 
-@app.get("/api/students", response_model=List[StudentRspModel])
-async def get_students(uni: str = None, last_name: str = None, school_code: str = None):
-    """
-    Return a list of students matching a query string.
 
-    - **uni**: student's UNI
-    - **last_name**: student's last name
-    - **school_code**: student's school.
+
+
+@app.get("/api/users", response_model=List[UserRspModel])
+async def get_usersAll(userID: int | None = None, firstName: str | None = None, lastName: str | None = None, isAdmin: bool | None = None, offset: int | None = None, limit: int | None = None):
     """
-    result = students_resource.get_students(uni, last_name, school_code)
+    Return all users.
+    """
+    result = user_resource.get_users(userID, firstName, lastName, isAdmin, offset, limit)
     return result
 
-
-@app.get("/api/students/{uni}", response_model=Union[StudentRspModel, None])
-async def get_student(uni: str):
+@app.get("/api/users/{userID}", response_model=Union[List[UserRspModel], UserRspModel, None])
+async def get_users(userID: int):
     """
-    Return a student based on UNI.
+    Return a user based on userID.
 
-    - **uni**: student's UNI
+    - **userID**: User's userID
     """
-    result = None
-    result = students_resource.get_students(uni)
+    result = user_resource.get_users(userID, firstName=None, lastName=None, isAdmin=None, offset=None, limit=None)
     if len(result) == 1:
         result = result[0]
     else:
@@ -101,23 +139,40 @@ async def get_student(uni: str):
     return result
 
 
-@app.get("/api/schools", response_model=List[SchoolRspModel])
-async def get_schools():
+@app.post("/api/users/newUser")
+def add_users(request: UserModel):
+    
+    result = user_resource.add_user(request)
+    if len(result) == 1:
+        result = result[0]
+    else:
+        raise HTTPException(status_code=404, detail="Not found")
+    
+    return result
+
+@app.get("/api/posts", response_model=List[PostRspModel])
+async def get_posts(userID: int, postID: int , postThreadID: int , postContent: str , dateOfCreation: str,  offset: int, limit: int):
     """
-    Return a list of schools.
+    Returns all posts.
     """
-    result = schools_resource.get_schools()
+    
+
+    result = post_resource.get_posts(userID, postID, postThreadID, postContent, dateOfCreation, offset, limit)
+
+
     return result
 
 
-@app.get("/api/schools/{school_code}/students", response_model=List[StudentRspModel])
-async def get_schools_students(school_code, uni=None, last_name=None):
-    """
-    Return a list of schools.
-    """
-    result = schools_resource.get_schools_students(school_code, uni, last_name)
+def new_post(request: PostModel):
+    
+    result = None
+    result = post_resource.delete_post(request)
+    if len(result) == 1:
+        result = result[0]
+    else:
+        raise HTTPException(status_code=404, detail="Not found")
+    
     return result
-
 
 
 
