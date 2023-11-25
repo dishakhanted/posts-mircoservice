@@ -2,14 +2,6 @@
 # FastAPI is a framework and library for implementing REST web services in Python.
 # https://fastapi.tiangolo.com/
 #
-from fastapi import FastAPI, Response, HTTPException, Request
-from fastapi.responses import RedirectResponse
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
-
-from fastapi.staticfiles import StaticFiles
-from typing import List, Union
-
 from datetime import datetime, timedelta
 from typing import Annotated
 from fastapi import Depends, FastAPI, HTTPException, status
@@ -17,17 +9,26 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
+from fastapi import FastAPI, Response, HTTPException, Request
+from fastapi.responses import RedirectResponse
+
+from fastapi.responses import HTMLResponse
+
+from fastapi.staticfiles import StaticFiles
+from typing import List, Union
+
+
 
 
 # I like to launch directly and not use the standard FastAPI startup process.
 # So, I include uvicorn
 import uvicorn
-
-from resources.posts.post_data_service import PostDataService
-from resources.posts.post_resource import PostRspModel, PostModel, PostResource
 from resources.users.users_data_service import UserDataService
 from resources.users.users_resource import UserResource
 from resources.users.users_models import UserRspModel, UserModel
+from resources.posts.post_data_service import PostDataService
+from resources.posts.post_resource import PostRspModel, PostModel, PostResource
+
 from pydantic import BaseModel
 
 class Token(BaseModel):
