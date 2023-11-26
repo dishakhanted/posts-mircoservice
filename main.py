@@ -2,51 +2,38 @@
 # FastAPI is a framework and library for implementing REST web services in Python.
 # https://fastapi.tiangolo.com/
 #
-from datetime import datetime, timedelta
-from typing import Annotated
-from fastapi import Depends, FastAPI, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from jose import JWTError, jwt
-from passlib.context import CryptContext
-from pydantic import BaseModel
 from fastapi import FastAPI, Response, HTTPException, Request
 from fastapi.responses import RedirectResponse
-
+from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 
 from fastapi.staticfiles import StaticFiles
 from typing import List, Union
 
-
+from datetime import datetime, timedelta
+from typing import Annotated
+from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from pydantic import BaseModel
 
 
 # I like to launch directly and not use the standard FastAPI startup process.
 # So, I include uvicorn
 import uvicorn
+
+from resources.posts.post_data_service import PostDataService
+from resources.posts.post_resource import PostRspModel, PostModel, PostResource
 from resources.users.users_data_service import UserDataService
 from resources.users.users_resource import UserResource
 from resources.users.users_models import UserRspModel, UserModel
-from resources.posts.post_data_service import PostDataService
-from resources.posts.post_resource import PostRspModel, PostModel, PostResource
-
 from pydantic import BaseModel
 
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-
-class TokenData(BaseModel):
-    username: str | None = None
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+LOCAL=False
 
 app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
+
 
 
 def get_data_service():
@@ -66,20 +53,9 @@ def get_data_service():
             "db_pass" : "post",
         }
 
-    ds = PostDataService(database)
+    ds = UserDataService(database)
     return ds
 
-
-def get_post_resource():
-    ds = get_data_service()
-    config = {
-        "data_service": ds
-    }
-    res = PostResource(config)
-    return res
-
-
-post_resource = get_post_resource()
 
 def get_user_resource():
     ds = get_data_service()
@@ -91,6 +67,35 @@ def get_user_resource():
 
 
 user_resource = get_user_resource()
+
+def get_post_resource():
+    database = {}
+    if LOCAL:
+        database = {
+            "db_name" : "post",
+            "db_host" : "localhost",
+            "db_user" : "post",
+            "db_pass" : "post",
+        }
+    else:
+        database = {
+            "db_name" : "post",
+            "db_host" : '/cloudsql/{}'.format("posts-microservice:us-east1:post-db"),
+            "db_user" : "post",
+            "db_pass" : "post",
+        }
+
+
+    ds = PostDataService(database)
+
+    config = {
+        "data_service": ds
+    }
+    res = PostResource(config)
+    return res
+
+
+post_resource = get_post_resource()
 
 #
 # END TODO
@@ -117,7 +122,7 @@ async def api():
 
 
 @app.get("/api/users", response_model=List[UserRspModel])
-async def get_usersAll(userID: int | None = None, firstName: str | None = None, lastName: str | None = None, isAdmin: bool | None = None, offset: int | None = None, limit: int | None = None):
+async def get_users(userID:int, firstName: str, lastName: str, isAdmin: bool, offset: int, limit: int):
     """
     Return all users.
     """
@@ -125,7 +130,7 @@ async def get_usersAll(userID: int | None = None, firstName: str | None = None, 
     return result
 
 @app.get("/api/users/{userID}", response_model=Union[List[UserRspModel], UserRspModel, None])
-async def get_users(userID: int):
+async def get_student(userID: int):
     """
     Return a user based on userID.
 
@@ -152,13 +157,13 @@ def add_users(request: UserModel):
     return result
 
 @app.get("/api/posts", response_model=List[PostRspModel])
-async def get_posts(userID: int, postID: int , postThreadID: int , postContent: str , dateOfCreation: str,  offset: int, limit: int):
+async def get_posts(userID: int, postID: int ,postThreadID: int, postContent: str , dateOfCreation: str, offset: int, limit: int):
     """
     Returns all posts.
     """
     
 
-    result = post_resource.get_posts(userID, postID, postThreadID, postContent, dateOfCreation, offset, limit)
+    result = post_resource.get_posts(userID, postID, postThreadID, postContent,dateOfCreation, offset, limit)
 
 
     return result
