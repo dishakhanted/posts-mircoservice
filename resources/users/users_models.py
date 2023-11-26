@@ -16,8 +16,8 @@ class UserModel(BaseModel):
             "examples": [
                 {
                     "userID": 1,
-                    "firstName": "Maxwell",
-                    "lastName": "Gonsalves",
+                    "firstName": "Serena",
+                    "lastName": "Vanderwoodsen",
                     "isAdmin": True
                 }
             ]
