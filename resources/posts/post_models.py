@@ -18,7 +18,7 @@ class PostModel(BaseModel):
         "json_schema_extra": {
             "examples": [
                 {
-                    "userPostID":1
+                    "userPostID":1,
                     "userID": 1,
                     "postID": 1,
                     "postThreadID": 1,
