@@ -167,8 +167,32 @@ async def get_posts(userID: int, postID: int ,postThreadID: int, postContent: st
 
 
     return result
+@app.post("/api/posts/newPost")
+def new_post(request: PostModel):
+    
+    result = None
+    result = post_resource.add_post(request)
+    if len(result) == 1:
+        result = result[0]
+    else:
+        raise HTTPException(status_code=404, detail="Not found")
+    
+    return result
 
 
+@app.put("/api/posts/newPost")
+def new_message(request: PostModel):
+    
+    result = None
+    result = post_resource.put_post(request)
+    if len(result) == 1:
+        result = result[0]
+    else:
+        raise HTTPException(status_code=404, detail="Not found")
+    
+    return result
+
+@app.delete("/api/posts/newPost")
 def new_post(request: PostModel):
     
     result = None
@@ -183,4 +207,4 @@ def new_post(request: PostModel):
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8011, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8012, reload=True)
