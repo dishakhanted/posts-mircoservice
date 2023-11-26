@@ -42,7 +42,7 @@ class PostDataService(BaseDataService):
             REFERENCES "postUsers"("userID")
         );"""
         threads = """CREATE TABLE IF NOT EXISTS "postThread" (
-        "postID" serial,
+        "postThreadID" serial,
         "dateOfCreation" timestamp,
         PRIMARY KEY ("postID")
         );"""
