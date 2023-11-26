@@ -31,6 +31,7 @@ class PostDataService(BaseDataService):
         "userPostID" serial,
         "userID" int,
         "postID" int,
+        "postThreadID" int,
         "postContent" text,
         "dateOfCreation" timestamp,
         PRIMARY KEY ("userPostsID"),
