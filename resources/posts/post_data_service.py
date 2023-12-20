@@ -34,7 +34,7 @@ class PostDataService(BaseDataService):
         "postThreadID" int,
         "postContent" text,
         "dateOfCreation" timestamp,
-        PRIMARY KEY ("userPostsID"),
+        PRIMARY KEY ("userPostID"),
         CONSTRAINT "FK_userPosts.postID"
             FOREIGN KEY ("postID")
             REFERENCES "postThread"("postID"),
@@ -45,7 +45,7 @@ class PostDataService(BaseDataService):
         threads = """CREATE TABLE IF NOT EXISTS "postThread" (
         "postThreadID" serial,
         "dateOfCreation" timestamp,
-        PRIMARY KEY ("postID")
+        PRIMARY KEY ("postThreadID")
         );"""
         self.database.execute_query(threads)
         self.database.execute_query(posts)
