@@ -1,6 +1,6 @@
 fastapi
 uvicorn
-gunicorn
+gunicorn==20.1.0
 psycopg2-binary
 jinja2
 passlib[bcrypt]
