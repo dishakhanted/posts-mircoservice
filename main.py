@@ -38,7 +38,7 @@ def get_data_service():
     else:
         database = {
             "db_name": "post",
-            "db_host": '/cloudsql/{}'.format("posts-microservice:us-east1:post-db"),
+            "db_host": '/cloudsql/{}'.format("ecbm4040-vc2652:us-east1:post-db"),
             "db_user": "post",
             "db_pass": "post",
         }
