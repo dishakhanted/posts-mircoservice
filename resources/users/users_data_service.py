@@ -21,7 +21,7 @@ class UserDataService(BaseDataService):
 
     def _load(self):
 
-        users = """CREATE TABLE IF NOT EXISTS "messageUsers" (
+        users = """CREATE TABLE IF NOT EXISTS "postUsers" (
         "userID" serial,
         "firstName" text,
         "lastName" text,
@@ -52,9 +52,9 @@ class UserDataService(BaseDataService):
         result = []
         users = {}
         if userID == None:
-            users = self.database.fetchallquery('SELECT * FROM "messageUsers";')
+            users = self.database.fetchallquery('SELECT * FROM "postUsers";')
         else:
-            users = self.database.fetchallquery('SELECT * FROM "messageUsers" WHERE "userID"='+str(userID)+';')
+            users = self.database.fetchallquery('SELECT * FROM "postUsers" WHERE "userID"='+str(userID)+';')
         
         for s in users:
             result.append(s)
@@ -70,7 +70,7 @@ class UserDataService(BaseDataService):
         :param request: A dictionary of the UserModel
         :return: userID of the newly created user.
         """
-        query = f"""INSERT INTO "messageUsers"("userID", "firstName", "lastName", "isAdmin") VALUES (DEFAULT, '{request.firstName}' , '{request.lastName}', {request.isAdmin}) RETURNING "userID";"""
+        query = f"""INSERT INTO "postUsers"("userID", "firstName", "lastName", "isAdmin") VALUES (DEFAULT, '{request.firstName}' , '{request.lastName}', {request.isAdmin}) RETURNING "userID";"""
         users = self.database.execute_query(query)
         result = users.fetchone()
 
