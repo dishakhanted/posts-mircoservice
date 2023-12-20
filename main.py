@@ -171,7 +171,7 @@ def new_post(request: PostModel):
 
 
 @app.put("/api/posts/newPost")
-def new_message(request: PostModel):
+def new_post(request: PostModel):
     result = post_resource.put_post(request)
     if len(result) == 1:
         result = result[0]
