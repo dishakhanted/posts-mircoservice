@@ -35,9 +35,9 @@ class PostDataService(BaseDataService):
         "postContent" text,
         "dateOfCreation" timestamp,
         PRIMARY KEY ("userPostID"),
-        CONSTRAINT "FK_userPosts.postID"
-            FOREIGN KEY ("postID")
-            REFERENCES "postThread"("postID"),
+        CONSTRAINT "FK_userPosts.postThreadID"
+            FOREIGN KEY ("postThreadID")
+            REFERENCES "postThread"("postThreadID"),
         CONSTRAINT "FK_userPosts.userID"
             FOREIGN KEY ("userID")
             REFERENCES "postUsers"("userID")
