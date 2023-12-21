@@ -1,7 +1,8 @@
 # FastAPI is a framework and library for implementing REST web services in Python.
 # https://fastapi.tiangolo.com/
 #
-from fastapi import FastAPI, RedirectResponse, HTTPException
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from typing import List, Union
 from fastapi.responses import HTMLResponse
