@@ -40,7 +40,7 @@ def get_data_service():
             "db_name": "post",
             "db_host": '/cloudsql/{}'.format("ecbm4040-vc2652:us-east1:post-db"),
             "db_user": "post",
-            "db_pass": "post",
+            "db_pass": "123456",
         }
 
     ds = UserDataService(database)
