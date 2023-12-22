@@ -73,7 +73,7 @@ class UserDataService(BaseDataService):
     
     def add_user(self, request: dict) -> list:
         """
-
+    
         Adds students with properties matching the values. Only non-None parameters apply to
         the filtering.
 
@@ -85,4 +85,15 @@ class UserDataService(BaseDataService):
         result = users.fetchone()
 
         return result
+        
+    def delete_user(self, request: dict) -> list:
+        """
 
+        Deletes a message from a thread.
+
+        :param request: DELETE request with message ID.
+        """
+        users = self.database.execute_query("DELETE FROM \"postUsers\" WHERE \"userID\" = %s RETURNING \"userID\"", (request.userID,))
+        result = users.fetchone()
+
+        return result
