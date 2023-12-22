@@ -1,3 +1,8 @@
 runtime: python312
 entrypoint: gunicorn -w 1 -k uvicorn.workers.UvicornWorker main:app
 instance_class: F1
+
+env_variables:
+  PROJECT_ID: "ecbm4040-vc2652"
+  TOPIC_NAME_USER: "user_created"
+  TOPIC_NAME_POST: "post_created"
