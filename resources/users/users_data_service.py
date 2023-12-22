@@ -40,7 +40,7 @@ class UserDataService(BaseDataService):
     def get_database(self):
         return self.database
 
-    def get_users(self, userID: int) -> list:
+    def get_users(self, userID: int, firstName: str, lastName: str, isAdmin: bool, offset: int, limit: int) -> list:
         """
 
         Returns users with properties matching the values. Only non-None parameters apply to
@@ -51,11 +51,21 @@ class UserDataService(BaseDataService):
         """
         result = []
         users = {}
-        if userID == None:
-            users = self.database.fetchallquery('SELECT * FROM "postUsers";')
-        else:
-            users = self.database.fetchallquery('SELECT * FROM "postUsers" WHERE "userID"='+str(userID)+';')
+        # Define a list of parameters and their values
+        params = ["""\"userID\"""", """\"firstName\"""", """\"lastName\"""", """\"isAdmin\"""", """\"offset\"""", """\"limit\""""]
+        values = [userID, firstName, lastName, isAdmin, offset, limit]
+
+        query = """SELECT * FROM "postUsers" """
+        conditions = []
+        for param, value in zip(params, values):
+            if value is not None:
+                conditions.append(f"{param} = %s")
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
+        query += ";"
+
         
+        users = self.database.fetchallquery(query, tuple(value for value in values if value is not None))
         for s in users:
             result.append(s)
 
@@ -70,8 +80,8 @@ class UserDataService(BaseDataService):
         :param request: A dictionary of the UserModel
         :return: userID of the newly created user.
         """
-        query = f"""INSERT INTO "postUsers"("userID", "firstName", "lastName", "isAdmin") VALUES (DEFAULT, '{request.firstName}' , '{request.lastName}', {request.isAdmin}) RETURNING "userID";"""
-        users = self.database.execute_query(query)
+    
+        users = self.database.execute_query("""INSERT INTO \"postUsers\" (\"userID\", \"firstName\", \"lastName\", \"isAdmin\") VALUES (DEFAULT, %s, %s, %s) RETURNING \"userID\"""", (request.firstName, request.lastName, request.isAdmin))
         result = users.fetchone()
 
         return result

@@ -29,14 +29,15 @@ class UserResource(BaseResource):
         rsp = UserRspModel(**s, links=links)
         return rsp
 
-    def get_users(self, userID: int) -> List[UserRspModel]:
+    def get_users(self, userID: int, firstName: str, lastName: str, isAdmin: bool, offset: int, limit: int) -> List[UserRspModel]:
 
-        result = self.data_service.get_users(userID)
+        result = self.data_service.get_users(userID, firstName, lastName, isAdmin, offset, limit)
         final_result = []
 
         for s in result:
-            m = self._generate_links(s)
-            final_result.append(m)
+            #m = self._generate_links(s)
+            #final_result.append(m)
+            final_result.append(s)
 
         return final_result
     
@@ -45,4 +46,9 @@ class UserResource(BaseResource):
         result = self.data_service.add_user(request)
 
         return result
+    
+    def delete_user(self, request: UserModel) -> List[UserRspModel]:
 
+        result = self.data_service.delete_user(request)
+
+        return result
