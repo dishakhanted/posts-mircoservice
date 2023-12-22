@@ -31,7 +31,7 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 # Google Cloud Pub/Sub settings
-PROJECT_ID = "ecbm4040-vc2652"
+PROJECT_ID = "ecbm4040-spr2139"
 TOPIC_NAME_USER = "user_created"
 TOPIC_NAME_POST = "post_created"
 
@@ -55,7 +55,7 @@ def get_data_service():
     else:
         database = {
             "db_name": "post",
-            "db_host": '/cloudsql/{}'.format("ecbm4040-vc2652:us-east1:post-db"),
+            "db_host": '/cloudsql/{}'.format("ecbm4040-spr2139:us-east1:post-db"),
             "db_user": "post",
             "db_pass": "123456",
         }
@@ -93,7 +93,7 @@ def get_post_resource():
     else:
         database = {
             "db_name": "post",
-            "db_host": '/cloudsql/{}'.format("ecbm4040-vc2652:us-east1:post-db"),
+            "db_host": '/cloudsql/{}'.format("ecbm4040-spr2139:us-east1:post-db"),
             "db_user": "post",
             "db_pass": "123456",
         }
