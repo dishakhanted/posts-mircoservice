@@ -89,7 +89,7 @@ class PostDataService(BaseDataService):
 
         :param request: POST request with post data.
         """
-        #self.database.execute_query("INSERT INTO \"postThread\" (\"postID\", \"dateOfCreation\") VALUES (%s, CURRENT_TIMESTAMP) ON CONFLICT DO NOTHING", (request.postID,))
+        self.database.execute_query("INSERT INTO \"postThread\" (\"postID\", \"dateOfCreation\") VALUES (%s, CURRENT_TIMESTAMP) ON CONFLICT DO NOTHING", (request.postID,))
         posts = self.database.execute_query("INSERT INTO \"userPosts\" (\"userPostID\", \"userID\", \"postID\", \"postContent\", \"dateOfCreation\") VALUES (DEFAULT, %s, %s, %s, CURRENT_TIMESTAMP) RETURNING \"postID\"", (request.userID, request.postID, request.postContent))
         result = posts.fetchone()
 
@@ -102,7 +102,7 @@ class PostDataService(BaseDataService):
 
         :param request: POST request with post data.
         """
-        #self.database.execute_query("INSERT INTO \"postThread\" (\"postID\", \"dateOfCreation\") VALUES (%s, CURRENT_TIMESTAMP) ON CONFLICT DO NOTHING", (request.postID,))
+        self.database.execute_query("INSERT INTO \"postThread\" (\"postID\", \"dateOfCreation\") VALUES (%s, CURRENT_TIMESTAMP) ON CONFLICT DO NOTHING", (request.postID,))
         posts = self.database.execute_query("INSERT INTO \"userPosts\" (\"userPostID\", \"userID\", \"postID\", \"postContent\", \"dateOfCreation\") VALUES (%s, %s, %s, %s, CURRENT_TIMESTAMP) ON CONFLICT (\"userPostID\") DO UPDATE SET \"postContent\"=%s, \"dateOfCreation\"=CURRENT_TIMESTAMP RETURNING \"postID\"", (request.userPostID, request.userID, request.postID, request.postContent, request.postContent))
         result = posts.fetchone()
 
