@@ -33,7 +33,7 @@ templates = Jinja2Templates(directory="templates")
 # Google Cloud Pub/Sub settings
 PROJECT_ID = "ecbm4040-spr2139"
 TOPIC_NAME_USER = "user_created"
-TOPIC_NAME_POST = "post_created"
+TOPIC_NAME_POST = "posts_created"
 
 # Create Pub/Sub publisher clients
 publisher_user = pubsub_v1.PublisherClient()
